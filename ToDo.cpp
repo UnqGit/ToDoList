@@ -17,9 +17,9 @@ std::vector<std::string> priority_list;
 int get_option(){
     int option;
     std::cout << "What do you want to do:";
-    std::cout << "\n1. Show tasks.\n2. Create task.\n3. Delete task.\n4. Mark task complete.\n5. Mark task incomplete.\n6. Set priority.\n";
+    std::cout << "\n1. Show tasks.\n2. Create task.\n3. Delete task.\n4. Mark task complete.\n5. Mark task incomplete.\n6. Set priority.\n7. Edit a task.\n";
     std::cout << "Enter your choice:\n";
-    while(!(std::cin >> option) || option < 1 || option > 6){
+    while(!(std::cin >> option) || option < 1 || option > 7){
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cout << "Incorrect choice option.\nEnter choice again:\n";
@@ -40,7 +40,7 @@ void lists(){
     std::string tasks = buffer.str();
     std::string title, description, status, priority;
     std::stringstream ss(tasks);
-    while(std::getline(ss, title, '\0') && std::getline(ss, description, '\0') && std::getline(ss, status, '\0') && std::getline(ss, priority, '\0')){
+    while(std::getline(ss, title, '\0') && std::getline(ss, description, '\0') && std::getline(ss, status, '\0') && std::getline(ss, priority, '\n')){
         DATA data = {description, status == "1"};
         list[title] = data;
         int prior = (priority.empty() ? -1 : stoi(priority));
@@ -58,6 +58,10 @@ void lists(){
 }
 
 void show_task(){
+    if(list.size==0){
+        std::cout << "No tasks yet.\n";
+        return;
+    }
     
 }
 
