@@ -30,6 +30,7 @@ int get_option(){
         cin_clear();
         std::cout << "Incorrect choice option.\nEnter choice again:\n";
     }
+    cin_clear();
     return option;
 }
 
@@ -63,7 +64,7 @@ void lists(){
 
 void printTask(const std::string& title, const DATA& data){
     std::cout << (data.completed ? "\033[32m" : "\033[31m") << title << "\033[0m\n";
-    std::cout << "\n\t\033[97m" << data.description << "\033[0m\n";
+    if(!data.description.empty()) std::cout << "\t\033[97m" << data.description << "\033[0m\n";
 }
 
 void show_task(){
@@ -136,8 +137,8 @@ std::string getInput(const std::string& prompt, int type){
 
 void create_task(){
     std::string input = getInput("Enter the new task name:\n", 0);
-    std::string description = getInput("Enter the description(optional, hit enter to skip):\n", 1);
-    std::string priority = getInput("Set priority(optional, hit enter to skip):\n", 2);
+    std::string description = getInput("Enter the description(hit enter to skip):\n", 1);
+    std::string priority = getInput("Set priority(hit enter to skip):\n", 2);
     int prior = stoi(priority);
     DATA data = {description, 0, prior};
     if(prior == -1 || prior-1==priority_list.size()) priority_list.push_back(input);
@@ -217,7 +218,7 @@ void prioritySet(bool edit, std::string I){
     }
     priority_list.erase(priority_list.begin() + j);
     if(new_priority > priority_list.size()) priority_list.push_back(input);
-    else priority_list.insert(new_priority - 1, input);
+    else priority_list.insert(priority_list.begin() + new_priority - 1, input);
 }
 
 void set_priority(){
