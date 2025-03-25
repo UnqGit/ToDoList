@@ -63,8 +63,8 @@ void lists(){
 }
 
 void printTask(const std::string& title, const DATA& data){
-    std::cout << (data.completed ? "\033[32m" : "\033[31m") << title << "\033[0m\n";
-    if(!data.description.empty()) std::cout << "\t\033[97m" << data.description << "\033[0m\n";
+    std::cout << (data.completed ? "\033[92m" : "\033[91m") << title << "\033[0m\n";
+    if(!data.description.empty()) std::cout << ": \033[97m" << data.description << "\033[0m\n";
 }
 
 void show_task(){
@@ -95,7 +95,11 @@ bool numberValidation(std::string& input, int offset = 0){
         }
     }
     int toCheck = stoi(input);
-    if(toCheck == 0 || toCheck > (priority_list.size() + 1 - offset)) return true;
+    int j =priority_list.size() + 1 - offset;
+    if(toCheck == 0 || toCheck > j){
+        std::cout << "Number not in bound.\nEnter again(valid bound = 1" << (j > 1 ? (" to " + std::to_string(j)) : "") << "):\n";
+        return true;
+    }
     return false;
 }
 
@@ -108,30 +112,23 @@ std::string getInput(const std::string& prompt, int type){
         }
         return false;
     };
-    if(type!=0){
-        std::string input;
-        bool invalid;
-        do{
-            std::cin.clear();
-            std::getline(std::cin, input);
-            correction(input);
-            if(input.empty()) return (type == 2 ? "-1" : "");
-            invalid = (type==1?stringValidation(input):numberValidation(input));
-            std::cin.clear();
-        }while(invalid);
-        return input;
-    }
     std::string input;
+    bool invalid;
     do{
         std::cin.clear();
         std::getline(std::cin, input);
         correction(input);
         if(input.empty() || list.find(input) != list.end()){
+            if(type!=0) return (type == 2 ? "-1" : "");
+            std::cin.clear();
             std::cout << "Err! Title can't be empty or same as one already present.\n";
             std::cout << "Enter again:\n";
             continue;
         }
-    }while(stringValidation(input));
+        invalid = (type==2 ? numberValidation(input) : stringValidation(input));
+        if(!invalid) break;
+    }while(true);
+    std::cin.clear();
     return input;
 }
 
@@ -141,9 +138,11 @@ void create_task(){
     std::string priority = getInput("Set priority(hit enter to skip):\n", 2);
     int prior = stoi(priority);
     DATA data = {description, 0, prior};
-    if(prior == -1 || prior-1==priority_list.size()) priority_list.push_back(input);
+    if(prior == -1 || prior == priority_list.size() + 1) priority_list.push_back(input);
     else priority_list.insert(priority_list.begin() + prior - 1, input);
     list[input] = data;
+    std::cin.clear();
+    std::cout << "Done.\n";
 }
 
 void delete_task(){
@@ -153,10 +152,14 @@ void delete_task(){
         std::cin.clear();
         std::getline(std::cin, input);
         correction(input);
-        if(input == "/q") return;
+        if(input == "/q"){
+            std::cin.clear();
+            return;
+        }
         if(list.find(input) != list.end()) break;
         std::cout << "Item not found.\nEnter again(or enter \"/q\" to exit):\n";
     }while(true);
+    std::cin.clear();
     int prior = list.at(input).priority;
     list.erase(input);
     if(prior!=-1) priority_list.erase(priority_list.begin()+prior);
@@ -169,13 +172,17 @@ void congested(bool comp){
         std::cin.clear();
         std::getline(std::cin, input);
         correction(input);
-        if(input=="/q") return;
+        if(input=="/q"){
+            std::cin.clear();
+            return;
+        }
         if(list.find(input) != list.end()){
             int prior = list[input].priority;
             if(comp){if(prior!=-1) priority_list.erase(priority_list.begin() + prior);}
             else{if(prior==-1) priority_list.push_back(input);}
             list.at(input).completed = comp;
             std::cout << "Done.\n";
+            std::cin.clear();
             return;
         }
         std::cout << "No such task.\n";
@@ -191,38 +198,54 @@ void mark_incomplete(){
 }
 
 void prioritySet(bool edit, std::string I){
-    std::string input;
+    std::string input = I;
+    std::string new_priority;
     bool invalid;
-    int j, new_priority;
-    if(edit) std::cout << "Enter the task name(or enter /q to exit).\n";
-    do{
-        std::cin.clear();
-        if(edit) std::getline(std::cin, input);
-        else input = I;
-        correction(input);
-        if(input == "/q") return;
-        if(list.find(input) != list.end()){
-            j = list.at(input).priority;
-            if(j == -1){
-                std::cout << "Can't set priority of completed tasks.\n";
+    int j;
+    if(edit){
+        std::cout << "Enter the task name(or enter /q to exit).\n";
+        do{
+            std::cin.clear();
+            if(edit) std::getline(std::cin, input);
+            else input = I;
+            correction(input);
+            if(input == "/q"){
+                std::cin.clear();
                 return;
             }
-            break;
-        }
-        if(edit) std::cout << "Task doesn't exist.\n";
-    }while(true);
-    std::cout << "Enter the new priority for this task(Eg, 1 is the highest priority).\n";
-    while(!(std::cin >> new_priority) || new_priority < 1 || new_priority > priority_list.size()){
-        std::cout << "Err! Invalid number.\nEnter again:\n";
-        cin_clear();
+            if(list.find(input) != list.end()){
+                j = list.at(input).priority;
+                if(j == -1){
+                    std::cout << "Can't set priority of completed tasks.\n";
+                    std::cin.clear();
+                    return;
+                }
+                std::cin.clear();
+                break;
+            }
+            if(edit) std::cout << "Task doesn't exist.\n";
+        }while(true);
     }
+    else j = list.at(input).priority;
+    std::cin.clear();
+    std::cout << "Enter the new priority for this task(Eg, 1 is the highest priority).\n";
+    do{
+        std::cin.clear();
+        std::getline(std::cin, new_priority);
+        correction(new_priority);
+        if(!numberValidation(new_priority, 1)) break;
+    }while(true);
+    int p = stoi(new_priority);
+    std::cin.clear();
     priority_list.erase(priority_list.begin() + j);
-    if(new_priority > priority_list.size()) priority_list.push_back(input);
-    else priority_list.insert(priority_list.begin() + new_priority - 1, input);
+    if(p == -1 || p > priority_list.size()) priority_list.push_back(input);
+    else priority_list.insert(priority_list.begin() + p - 1, input);
 }
 
 void set_priority(){
     prioritySet(true, "");
+    std::cin.clear();
+    std::cout << "Done.\n";
 }
 
 void edit_task(){
@@ -240,6 +263,7 @@ void edit_task(){
         }
         std::cout << "Couldn't find the task.\nEnter again:\n";
     }while(true);
+    std::cin.clear();
     auto yesno = [&](const std::string& prompt){
         std::cout << prompt;
         std::cin.clear();
@@ -258,6 +282,8 @@ void edit_task(){
     if(input == "y" || input == "Y") list.at(new_name).description = getInput("Enter the new description:\n", 1);
     yesno("Do you want to edit the priority?(y/n):\n");
     if(input == "y" || input == "Y") prioritySet(false, new_name);
+    std::cin.clear();
+    std::cout << "Done.\n";
 }
 
 void save_list(){
