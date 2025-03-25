@@ -21,11 +21,11 @@ int main(){
         }
         i++;
         save_list();
-        std::cout << "\nQuit?(y/n)\n";
+        std::cout << "Quit?(y/n)\n";
         std::getline(std::cin, quit);
         for(char& c : quit) c = std::tolower(c);
         if(quit.find('y') != std::string::npos || quit.find('1') != std::string::npos) break;
-        if(i % 5 == 0) save_data();
+        if(i % 3 == 0) save_data();
     }
     save_data();
 }
