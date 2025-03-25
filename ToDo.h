@@ -8,4 +8,6 @@ void delete_task();
 void mark_complete();
 void mark_incomplete();
 void set_priority();
+void edit_task();
 void save_list();
+void save_data();
