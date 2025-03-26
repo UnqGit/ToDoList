@@ -3,6 +3,7 @@
 #include <fstream>
 #include <map>
 #include <algorithm>
+#include <stdexcept>
 #include <sstream>
 #include <limits>
 #include <vector>
@@ -48,12 +49,25 @@ void lists(){
     std::string title, description, status, priority;
     std::stringstream ss(tasks);
     while(std::getline(ss, title, '\0') && std::getline(ss, description, '\0') && std::getline(ss, status, '\0') && std::getline(ss, priority, '\n')){
-        int prior = stoi(priority);
+        int prior;
+        try{
+            prior = std::stoi(priority);
+        }
+         catch(const std::invalid_argument& e) {
+            std::cerr << "Warning: Task '" << title << "' has invalid priority. Setting to -1.\n";
+            prior = -1;
+        } 
+        catch(const std::out_of_range& e) {
+            std::cerr << "Warning: Task '" << title << "' has out-of-range priority. Setting to -1.\n";
+            prior = -1;
+        }
         DATA data = {description, status == "1", prior};
         list[title] = data;
         temp.emplace_back(title, prior);
     }
     std::sort(temp.begin(), temp.end(), [](auto& a, auto& b){
+        if(a.second == -1) return false;
+        if(b.second == -1) return true;
         return a.second < b.second;
     });
     for (auto& [task, _] : temp) {
@@ -133,7 +147,11 @@ std::string getInput(const std::string& prompt, int type){
 }
 
 void create_task(){
-    std::string input = getInput("Enter the new task name:\n", 0);
+    std::string input = getInput("Enter the new task name(or enter /q to exit):\n", 0);
+    if(input == "/q"){
+        std::cin.clear();
+        return;
+    }
     std::string description = getInput("Enter the description(hit enter to skip):\n", 1);
     std::string priority = getInput("Set priority(hit enter to skip):\n", 2);
     int prior = stoi(priority);
@@ -185,7 +203,7 @@ void congested(bool comp){
             std::cin.clear();
             return;
         }
-        std::cout << "No such task.\n";
+        std::cout << "No such task.\nEnter again:\n";
     }while(true);
 }
 
