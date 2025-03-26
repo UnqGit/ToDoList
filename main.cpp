@@ -21,10 +21,8 @@ int main(){
         }
         i++;
         save_list();
-        std::cout << "Quit?(y/n)\n";
-        std::getline(std::cin, quit);
-        for(char& c : quit) c = std::tolower(c);
-        if(quit.find('y') != std::string::npos || quit.find('1') != std::string::npos) break;
+        quit = getInput("Enter /q to quit the program or hit enter to continue:\n", 1);
+        if(quit == "/q") break;
         if(i % 3 == 0) save_data();
     }
     save_data();
