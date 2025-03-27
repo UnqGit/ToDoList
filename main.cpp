@@ -1,9 +1,8 @@
+//WELCOME
 #include <iostream>
 #include <string>
 #include "ToDo.h"
-
 enum options{SHOW = 1, CREATE, DELETE, COMPLETE, INCOMPLETE, PRIORITY, EDIT};
-
 int main(){
     lists();
     int i = 0;
@@ -20,10 +19,11 @@ int main(){
             case EDIT: edit_task(); break;
         }
         i++;
-        save_list();
+        save_list(); //saves lists every iterations
         quit = getInput("Enter /q to quit the program or hit enter to continue:\n", 1);
         if(quit == "/q") break;
-        if(i % 3 == 0) save_data();
+        if(i % 4 == 0) save_data(); //auto save(not saving every iterations as might be a bit heavy for just a to-do list)
     }
-    save_data();
+    save_data(); //save and exit
 }
+//BYE..?
