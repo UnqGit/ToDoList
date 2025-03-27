@@ -1,4 +1,5 @@
 //I don't think it has the best possible implementation but i thought of all and made them so i am proud :D
+//*Not* used _json_(would have been better for editing the file instead of rewriting, ik) as haven't learned to use the required library yet.
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -9,12 +10,12 @@
 #include <limits>
 #include <vector>
 
+enum numbers{OPTION_MIN = 1, OPTION_MAX = 7, DEFAULT = -1, MAX_CHARACTERS = 50};
 struct DATA{
     std::string description = "";
     bool completed = 0;
-    int priority = -1;
+    int priority = DEFAULT;
 };
-
 std::map<std::string, DATA> list;
 std::vector<std::string> priority_list;//this is where the priority order handles itself and contains only completed task
 
@@ -24,7 +25,7 @@ void cin_clear(){//made it a function because i digress from writing it even 2 t
 }
 
 void done(){//same for this
-    std::cout << "Done.\n";
+    std::cout << "Done.\n————————————————————————————————————————————————————————\n";
 }
 
 std::string again(int t = 0){//and this
@@ -40,10 +41,11 @@ int get_option(){//options for user
     int option;
     std::cout << "What do you want to do:";
     std::cout << "\n1. Show tasks.\n2. Create task.\n3. Delete task.\n4. Mark task complete.\n5. Mark task incomplete.\n6. Set priority.\n7. Edit a task.\nEnter your choice:\n";
-    while(!(std::cin >> option) || option < 1 || option > 7){
+    while(!(std::cin >> option) || option < OPTION_MIN || option > OPTION_MAX){
         cin_clear();
         std::cout << "Incorrect choice option.\n" << again();
     }
+    std::cout << "\n";
     cin_clear();
     return option;
 }
@@ -69,27 +71,26 @@ void lists(){//loads the data from the text file at the start of the program
         }
          catch(const std::exception& e) {
             std::cerr << "Warning: Task '" << title << "' has invalid priority. Setting to default.\n";
-            prior = -1;
+            prior = DEFAULT;
         } 
         DATA data = {description, status == "1", prior};
         list[title] = data;
-        temp.emplace_back(title, prior);
+        if(status!="1") temp.emplace_back(title, prior);
     }
-    //the sorting i talked about(-1 thing is for the corrupted tasks that got defaulted to -1)
+    //the sorting i talked about(sets default task at the last of the list)
     std::sort(temp.begin(), temp.end(), [](auto& a, auto& b){
-        if(a.second == -1) return false;
-        if(b.second == -1) return true;
+        if(a.second == DEFAULT) return false;
+        if(b.second == DEFAULT) return true;
         return a.second < b.second;
     });
     for (auto& [task, _] : temp) {
-        if(list[task].completed) continue;
         priority_list.push_back(task);
     }
 }
 
 void printTask(std::string title, DATA data){//again...i digress
-    std::cout<<"\033[93m"<<title<<": "<<(data.completed?"\033[92mCOMPLETE":"\033[91mINCOMPLETE")<<(data.description.empty()?"":("\033[97m: "+data.description))<<"\033[0m\n";
-}
+    std::cout<<"\033[93m"<<title<<"\033[0m: "<<(data.completed?"\033[92mCOMPLETE":"\033[91mINCOMPLETE")<<(data.description.empty()?"":("\033[97m: "+data.description))<<"\033[0m\n";
+}//the magic-appeded-strings(\033[) colour the string following them
 
 void show_task(){
     if(list.empty()){
@@ -112,7 +113,7 @@ void correction(std::string& input){//removing whitespaces from the input from e
     input.erase(input.find_last_not_of(" \t\n") + 1);
 }
 
-bool numberValidation(std::string& input, int offset = 0){//for number validation, required for priority(int)
+bool numberValidation(std::string& input, int offset = 0){ //for number validation, required for priority(int)
     for(const char& ch : input){
         if(!std::isdigit(ch)){
             std::cout << "Err! Not a valid number.\n" << again();
@@ -120,9 +121,9 @@ bool numberValidation(std::string& input, int offset = 0){//for number validatio
         }
     }
     int toCheck = stoi(input);
-    int j = priority_list.size() + 1 - offset;//+1 is for when a new task is being created hence the offset for when it is edited
-    if(toCheck == 0 || toCheck > j){
-        std::cout << "Number not in bound.\n" << again() << "(valid bound = 1" << (j > 1 ? (" to " + std::to_string(j)) : "") << "):\n";
+    int j = priority_list.size() + OPTION_MIN - offset;//+OPTION_MIN is for when a new task is being created hence the offset for when it is edited
+    if(toCheck < OPTION_MIN || toCheck > j){
+        std::cout << "Number not in bound.\n" << again() << "(valid bound = " << OPTION_MIN << (j > OPTION_MIN ? (" to " + std::to_string(j)) : "") << "):\n";
         return true;
     }
     return false;
@@ -143,7 +144,7 @@ std::string getInput(const std::string& prompt, int type){//input handling for t
         std::cin.clear();
         std::getline(std::cin, input);
         correction(input);
-        if(input.length() > 50 && type == 0){
+        if(input.length() > MAX_CHARACTERS && type == 0){
             std::cout << "Title name can't be longer than 50 characters.\n" << again();
             continue;
         }
@@ -168,8 +169,8 @@ void create_task(){//function for creating the...you guessed it! THE TASK
     std::string description = getInput("Enter the description(hit enter to skip):\n", 1);
     std::string priority = getInput("Set priority(hit enter to skip):\n", 2);
     int prior = stoi(priority);
-    if(prior == -1 || prior == priority_list.size() + 1) priority_list.push_back(input);
-    else priority_list.insert(priority_list.begin() + prior - 1, input);
+    if(prior == DEFAULT || prior == priority_list.size() + OPTION_MIN) priority_list.push_back(input);
+    else priority_list.insert(priority_list.begin() + prior - OPTION_MIN, input);
     DATA data = {description, 0, prior};
     list[input] = data;
     std::cin.clear();
@@ -188,12 +189,12 @@ void delete_task(){//........yes it is for deleting...what did you expect....
             return;
         }
         if(list.find(input) != list.end()) break;
-        std::cout << "Item not found.\n" << again(1);
+        std::cout << "Task not found.\n" << again(1);
     }while(true);
     std::cin.clear();
     int prior = list.at(input).priority;
     list.erase(input);
-    if(prior!=-1) priority_list.erase(priority_list.begin()+prior);
+    if(prior!=DEFAULT) priority_list.erase(priority_list.begin()+prior);
 }
 
 void congested(bool comp){//for both marking complete and incomplete
@@ -209,8 +210,9 @@ void congested(bool comp){//for both marking complete and incomplete
         }
         if(list.find(input) != list.end()){
             int prior = list[input].priority;
-            if(comp){ if(prior!=-1) priority_list.erase(priority_list.begin() + prior);}
-            else{ if(prior==-1) priority_list.push_back(input);}
+            //check with default as it is not guaranteed that user will enter incomplete task to complete, might enter an already completed task
+            if(comp){if(prior!=DEFAULT) priority_list.erase(priority_list.begin() + prior);}
+            else{if(prior==DEFAULT) priority_list.push_back(input);}
             list.at(input).completed = comp;
             std::cin.clear();
             done();
@@ -245,7 +247,7 @@ void prioritySet(bool edit, std::string I = ""){//this is used for both the sepa
             }
             if(list.find(input) != list.end()){
                 j = list.at(input).priority;
-                if(j == -1){
+                if(j == DEFAULT){
                     std::cout << "Can't set priority of completed tasks.\n";
                     std::cin.clear();
                     return;
@@ -268,8 +270,8 @@ void prioritySet(bool edit, std::string I = ""){//this is used for both the sepa
     int p = stoi(new_priority);
     std::cin.clear();
     priority_list.erase(priority_list.begin() + j);
-    if(p == -1 || p > priority_list.size()) priority_list.push_back(input);
-    else priority_list.insert(priority_list.begin() + p - 1, input);
+    if(p == DEFAULT || p > priority_list.size()) priority_list.push_back(input);
+    else priority_list.insert(priority_list.begin() + p - OPTION_MIN, input);
 }
 
 void set_priority(){
@@ -309,7 +311,7 @@ void edit_task(){
         list.erase(old_name);
         new_name = getInput("Enter the new name:\n", 0);
         list[new_name] = data;
-        if(data.priority != -1) priority_list[data.priority] = new_name;
+        if(data.priority != DEFAULT) priority_list[data.priority] = new_name;
     }
     yesno("Do you want to edit the description?(y/n):\n");
     if(input == "y" || input == "Y") list.at(new_name).description = getInput("Enter the new description:\n", 1);
@@ -320,12 +322,10 @@ void edit_task(){
 }
 
 void save_list(){//saves(every iteration of the loop) list and corrects priority number in the data of tasks via priority_list
-    for(const auto [title,_] : list){
-        list[title].priority = -1;
-    }
-    for(int i = 0; i < priority_list.size(); i++){
+    for(auto& [_,data] : list)
+        data.priority = DEFAULT;
+    for(int i = 0; i < priority_list.size(); i++)
         list[priority_list[i]].priority = i;
-    }
 }
 
 void save_data(){//loads data into the text file every 3 iteration of the loop and on quitting the main program
@@ -334,8 +334,8 @@ void save_data(){//loads data into the text file every 3 iteration of the loop a
         std::cout << "Error saving data.\n";
         return;
     }
-    for(const auto [title, data] : list)
+    for(const auto& [title, data] : list)
         out << title << '\0' << data.description << '\0' << data.completed << '\0' << data.priority << '\n';
         //uses the custom delimiters to save data correctly for when it is loaded next time.
 }
-//THE ROOOOOOOOOOOKKKKKKKK - yoda probably
+//THE ROOOOOOOOOOOKKKKKKKK - yoda the master of levy probably
