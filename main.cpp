@@ -20,7 +20,7 @@ int main(){
         }
         i++;
         save_list(); //saves lists every iterations
-        quit = getInput("Enter /q to quit the program or hit enter to continue:\n", 1);
+        quit = getInput("\nEnter /q to quit the program or hit enter to continue:\n", 1);
         if(quit == "/q") break;
         if(i % 4 == 0) save_data(); //auto save(not saving every iterations as might be a bit heavy for just a to-do list)
     }
