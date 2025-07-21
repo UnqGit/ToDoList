@@ -1,6 +1,5 @@
 //WELCOME
-#include <iostream>
-#include <string>
+
 #include "ToDo.h"
 enum options{SHOW = 1, CREATE, DELETE, COMPLETE, INCOMPLETE, PRIORITY, EDIT};
 int main(){
