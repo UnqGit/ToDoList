@@ -1,14 +1,6 @@
 //I don't think it has the best possible implementation but i thought of all and made them so i am proud :D
 //*Not* used _json_(would have been better for editing the file instead of rewriting, ik) as haven't learned to use the required library yet.
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <map>
-#include <algorithm>
-#include <stdexcept>
-#include <sstream>
-#include <limits>
-#include <vector>
+#include "ToDo.h"
 
 enum numbers{OPTION_MIN = 1, OPTION_MAX = 7, DEFAULT = -1, MAX_CHARACTERS = 50};
 struct DATA{
