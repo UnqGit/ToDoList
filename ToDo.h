@@ -1,5 +1,16 @@
 #pragma once
+
 #include <string>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <map>
+#include <algorithm>
+#include <stdexcept>
+#include <sstream>
+#include <limits>
+#include <vector>
+
 int get_option();
 void lists();
 std::string getInput(const std::string& prompt, int type);
